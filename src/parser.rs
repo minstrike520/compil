@@ -29,8 +29,8 @@ impl Parser {
             let operator = self.pop_front().value;
             let right = self.parse_primary_expression();
             left = Expression::BinaryExpression(BinaryExpression {
-                left: Some(Box::new(left)),
-                right: Some(Box::new(right)),
+                left: Box::new(left),
+                right: Box::new(right),
                 operator,
             })
         }

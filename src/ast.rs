@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 pub enum Statement {
     Program(Program),
@@ -38,7 +37,7 @@ impl Identifier {
 
 #[derive(Debug)]
 pub struct BinaryExpression {
-    pub left: Option<Box<Expression>>,
-    pub right: Option<Box<Expression>>,
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
     pub operator: String
 }
