@@ -1,8 +1,6 @@
 use std::{env, fs};
 
-mod lexer;
-mod ast;
-mod parser;
+mod frontend;
 
 fn read_string() -> String {
     let mut input = String::new();
@@ -21,7 +19,7 @@ fn shell() {
             println!("Shell exits.");
             break;
         }
-        let program = parser::Parser::initialize(input).produce_ast();
+        let program = frontend::parser::Parser::initialize(input).produce_ast();
         println!("{:#?}", program);
     }
 }
@@ -40,6 +38,6 @@ fn main() {
 
     println!("<FILE CONTENT> \n{content}");
    
-    let parse_result = parser::Parser::initialize(content).produce_ast();
+    let parse_result = frontend::parser::Parser::initialize(content).produce_ast();
     println!("parse result: {:?}", parse_result);
 }

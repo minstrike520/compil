@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::{ast::{BinaryExpression, Expression, Identifier, NullLiteral, NumericLiteral, Program, Statement}, lexer::{tokenize, BinaryOperator, Token, TokenType}};
+use super::{ast::{BinaryExpression, Expression, Identifier, NullLiteral, NumericLiteral, Program, Statement}, lexer::{tokenize, BinaryOperator, Token, TokenType}};
 
 pub struct Parser {
     tokens: VecDeque<Token>
