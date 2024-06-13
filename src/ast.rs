@@ -8,8 +8,11 @@ pub enum Statement {
 pub enum Expression {
     NumericLiteral(NumericLiteral),
     Identifier(Identifier),
+    NullLiteral(NullLiteral),
     BinaryExpression(BinaryExpression)
 }
+
+
 #[derive(Debug)]
 pub struct Program { pub body: Vec<Statement> }
 
@@ -34,6 +37,9 @@ impl Identifier {
         Self { symbol }
     }
 }
+
+#[derive(Debug)]
+pub struct NullLiteral;
 
 #[derive(Debug)]
 pub struct BinaryExpression {

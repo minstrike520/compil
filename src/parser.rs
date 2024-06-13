@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::{ast::{BinaryExpression, Expression, Identifier, NumericLiteral, Program, Statement}, lexer::{tokenize, BinaryOperator, Token, TokenType}};
+use crate::{ast::{BinaryExpression, Expression, Identifier, NullLiteral, NumericLiteral, Program, Statement}, lexer::{tokenize, BinaryOperator, Token, TokenType}};
 
 pub struct Parser {
     tokens: VecDeque<Token>
@@ -54,6 +54,7 @@ impl Parser {
         match token.r#type {
             TokenType::Identifier => Expression::Identifier(Identifier::create(token.value)),
             TokenType::Number => Expression::NumericLiteral(NumericLiteral::create(token.value.parse::<i32>().unwrap())),
+            TokenType::Null => Expression::NullLiteral(NullLiteral),
             TokenType::OpenParen => {
                 let expr = self.parse_expression();
                 assert!(self.pop_front().r#type == TokenType::CloseParen,

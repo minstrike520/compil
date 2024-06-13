@@ -9,6 +9,7 @@ pub enum TokenType {
     CloseParen,
     BinaryOperator(BinaryOperator),
     Let,
+    Null,
     EOF,
 }
 
@@ -20,6 +21,7 @@ pub enum BinaryOperator {
 pub fn find_reserved(token: &String) -> Option<TokenType> {
     match token.as_str() {
         "let" => Some(TokenType::Let),
+        "null" => Some(TokenType::Null),
         _ => None,
     }
 }
