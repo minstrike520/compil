@@ -38,7 +38,6 @@ impl Parser {
     }
     fn parse_multiplicitave_expression(&mut self) -> Expression {
         let mut left = self.parse_primary_expression();
-
         while self.at().r#type == TokenType::BinaryOperator(BinaryOperator::Multiplicitave) {
             let operator = self.pop_front().value;
             let right = self.parse_primary_expression();
@@ -55,6 +54,13 @@ impl Parser {
         match token.r#type {
             TokenType::Identifier => Expression::Identifier(Identifier::create(token.value)),
             TokenType::Number => Expression::NumericLiteral(NumericLiteral::create(token.value.parse::<i32>().unwrap())),
+            TokenType::OpenParen => {
+                let expr = self.parse_expression();
+                assert!(self.pop_front().r#type == TokenType::CloseParen,
+                    "Expected a close parenthesis"
+                );
+                expr
+            }
             _ => {
                 panic!("Unexpected token found during parsing: {}", token.value)
             }
