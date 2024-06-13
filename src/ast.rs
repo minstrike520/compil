@@ -1,21 +1,42 @@
+
+#[derive(Debug)]
 pub enum Statement {
     Program(Program),
-    NumericLiteral(NumericLiteral),
-    Identifier(Identifier),
     BinaryExpression(BinaryExpression),
+    Expression(Expression)
 }
 
+#[derive(Debug)]
 pub enum Expression {
-    BinaryExpression(BinaryExpression),
+    NumericLiteral(NumericLiteral),
     Identifier(Identifier)
 }
+#[derive(Debug)]
+pub struct Program { pub body: Vec<Statement> }
 
-pub struct Program { body: Vec<Statement> }
+impl Program {
+    pub fn new() -> Self { Self { body: Vec::new() } }
+}
 
-pub struct NumericLiteral { value: i32 }
+#[derive(Debug)]
+pub struct NumericLiteral { pub value: i32 }
 
-pub struct Identifier { symbol: String }
+impl NumericLiteral {
+    pub fn create(value: i32) -> Self {
+        Self { value }
+    }
+}
 
+#[derive(Debug)]
+pub struct Identifier { pub symbol: String }
+
+impl Identifier {
+    pub fn create(symbol: String) -> Self {
+        Self { symbol }
+    }
+}
+
+#[derive(Debug)]
 pub struct BinaryExpression {
     left: Option<Box<Expression>>,
     right: Option<Box<Expression>>,
