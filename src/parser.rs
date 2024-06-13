@@ -23,9 +23,23 @@ impl Parser {
         self.tokens.pop_front().unwrap()
             }
     fn parse_additive_expression(&mut self) -> Expression {
-        let mut left = self.parse_primary_expression();
+        let mut left = self.parse_multiplicitave_expression();
 
         while self.at().r#type == TokenType::BinaryOperator(BinaryOperator::Additive) {
+            let operator = self.pop_front().value;
+            let right = self.parse_multiplicitave_expression();
+            left = Expression::BinaryExpression(BinaryExpression {
+                left: Box::new(left),
+                right: Box::new(right),
+                operator,
+            })
+        }
+        left
+    }
+    fn parse_multiplicitave_expression(&mut self) -> Expression {
+        let mut left = self.parse_primary_expression();
+
+        while self.at().r#type == TokenType::BinaryOperator(BinaryOperator::Multiplicitave) {
             let operator = self.pop_front().value;
             let right = self.parse_primary_expression();
             left = Expression::BinaryExpression(BinaryExpression {

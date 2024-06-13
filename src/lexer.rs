@@ -53,7 +53,7 @@ pub fn tokenize(source_code: String) -> Vec<Token> {
             '(' => (src.pop_front().unwrap().to_string(), TokenType::OpenParen),
             ')' => (src.pop_front().unwrap().to_string(), TokenType::CloseParen),
             '+' | '-' => (src.pop_front().unwrap().to_string(), TokenType::BinaryOperator(BinaryOperator::Additive)),
-            '*' | '/' => (src.pop_front().unwrap().to_string(), TokenType::BinaryOperator(BinaryOperator::Multiplicitave)),
+            '*' | '/' | '%' => (src.pop_front().unwrap().to_string(), TokenType::BinaryOperator(BinaryOperator::Multiplicitave)),
 
             '=' => (src.pop_front().unwrap().to_string(), TokenType::Equals),
             _ => {
