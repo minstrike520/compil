@@ -1,6 +1,7 @@
 use std::{env, fs};
 
 mod frontend;
+mod runtime;
 
 fn read_string() -> String {
     let mut input = String::new();
@@ -20,7 +21,8 @@ fn shell() {
             break;
         }
         let program = frontend::parser::Parser::initialize(input).produce_ast();
-        println!("{:#?}", program);
+        let result = runtime::interpreter::evaluate_program(program);
+        println!("{:#?}", result);
     }
 }
 
