@@ -7,9 +7,14 @@ pub enum TokenType {
     Equals,
     OpenParen,
     CloseParen,
-    BinaryOperator,
+    BinaryOperator(BinaryOperator),
     Let,
     EOF,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum BinaryOperator {
+    Additive, Multiplicitave
 }
 
 pub fn find_reserved(token: &String) -> Option<TokenType> {
@@ -44,19 +49,20 @@ pub fn tokenize(source_code: String) -> Vec<Token> {
     let mut src: VecDeque<char> = source_code.chars().collect();
     
     while !src.is_empty() {
-        use TokenType::*;
         let token: (String, TokenType) = match src[0] {
-            '(' => (src.pop_front().unwrap().to_string(), OpenParen),
-            ')' => (src.pop_front().unwrap().to_string(), CloseParen),
-            '+' | '-' | '*' | '/' => (src.pop_front().unwrap().to_string(), BinaryOperator),
-            '=' => (src.pop_front().unwrap().to_string(), Equals),
+            '(' => (src.pop_front().unwrap().to_string(), TokenType::OpenParen),
+            ')' => (src.pop_front().unwrap().to_string(), TokenType::CloseParen),
+            '+' | '-' => (src.pop_front().unwrap().to_string(), TokenType::BinaryOperator(BinaryOperator::Additive)),
+            '*' | '/' => (src.pop_front().unwrap().to_string(), TokenType::BinaryOperator(BinaryOperator::Multiplicitave)),
+
+            '=' => (src.pop_front().unwrap().to_string(), TokenType::Equals),
             _ => {
                 if src[0].is_digit(10) {
                     let mut number = String::new();
                     while src.len() > 0 && src[0].is_digit(10) {
                         number += &String::from(src.pop_front().unwrap());
                     }
-                    (number, Number)
+                    (number, TokenType::Number)
                 }
                 else if src[0].is_alphabetic() {
                     let mut identifier = String::new();
@@ -65,7 +71,7 @@ pub fn tokenize(source_code: String) -> Vec<Token> {
                     }
                     match find_reserved(&identifier) {
                         Some(t) => (identifier, t),
-                        None => (identifier, Identifier) 
+                        None => (identifier, TokenType::Identifier) 
                     }
                 }
                 else if is_skippable(&src[0]) {
