@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TokenType {
     Number,
     Identifier,
@@ -9,6 +9,7 @@ pub enum TokenType {
     CloseParen,
     BinaryOperator,
     Let,
+    EOF,
 }
 
 pub fn find_reserved(token: &String) -> Option<TokenType> {
@@ -79,5 +80,6 @@ pub fn tokenize(source_code: String) -> Vec<Token> {
         };
         tokens.push(Token::new(token.0, token.1));
     }
+    tokens.push(Token::new("<END OF FILE>".to_string(), TokenType::EOF));
     tokens
 }
