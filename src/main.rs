@@ -17,7 +17,7 @@ fn shell() {
     loop {
         print!("> ");
         let input = read_string();
-        if input.eq("exit") {
+        if input == "exit\n".to_string() {
             println!("Shell exits.");
             break;
         }
