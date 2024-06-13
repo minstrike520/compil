@@ -18,6 +18,12 @@ pub enum BinaryOperator {
     Additive, Multiplicitave
 }
 
+/// # Note: To use `String` as `&str`
+/// It's actually quite easy...just use `String`'s `as_str`.
+/// ```
+/// let string = String::new("awa");
+/// let static_str = string.as_str(); // type = &'static str
+/// ```
 pub fn find_reserved(token: &String) -> Option<TokenType> {
     match token.as_str() {
         "let" => Some(TokenType::Let),
