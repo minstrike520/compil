@@ -1,3 +1,6 @@
+use std::collections::VecDeque;
+
+#[derive(Debug)]
 pub enum TokenType {
     Number,
     Identifier,
@@ -23,6 +26,7 @@ pub fn is_skippable(token: &char) -> bool {
     ].contains(token)
 }
 
+#[derive(Debug)]
 pub struct Token {
     pub value: String,
     pub r#type: TokenType,
@@ -36,27 +40,27 @@ impl Token {
 
 pub fn tokenize(source_code: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
-    let mut src: Vec<char> = source_code.chars().collect();
+    let mut src: VecDeque<char> = source_code.chars().collect();
     
     while !src.is_empty() {
         use TokenType::*;
         let token: (String, TokenType) = match src[0] {
-            '(' => (src.pop().unwrap().to_string(), OpenParen),
-            ')' => (src.pop().unwrap().to_string(), CloseParen),
-            '+' | '-' | '*' | '/' => (src.pop().unwrap().to_string(), BinaryOperator),
-            '=' => (src.pop().unwrap().to_string(), Equals),
+            '(' => (src.pop_front().unwrap().to_string(), OpenParen),
+            ')' => (src.pop_front().unwrap().to_string(), CloseParen),
+            '+' | '-' | '*' | '/' => (src.pop_front().unwrap().to_string(), BinaryOperator),
+            '=' => (src.pop_front().unwrap().to_string(), Equals),
             _ => {
                 if src[0].is_digit(10) {
                     let mut number = String::new();
                     while src.len() > 0 && src[0].is_digit(10) {
-                        number += &String::from(src.pop().unwrap());
+                        number += &String::from(src.pop_front().unwrap());
                     }
                     (number, Number)
                 }
                 else if src[0].is_alphabetic() {
                     let mut identifier = String::new();
-                    while src.len() > 0 && src[0].is_digit(10) {
-                        identifier += &String::from(src.pop().unwrap());
+                    while src.len() > 0 && src[0].is_alphabetic() {
+                        identifier += &String::from(src.pop_front().unwrap());
                     }
                     match find_reserved(&identifier) {
                         Some(t) => (identifier, t),
@@ -64,12 +68,12 @@ pub fn tokenize(source_code: String) -> Vec<Token> {
                     }
                 }
                 else if is_skippable(&src[0]) {
-                    let _ = src.pop();
+                    let _ = src.pop_front();
                     continue;
                 }
                 else { panic!(
                     "Undefined character: {c}", 
-                    c = src.pop().unwrap().to_string());
+                    c = src.pop_front().unwrap().to_string());
                 }
             }
         };
