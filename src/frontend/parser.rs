@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use super::{ast::{BinaryExpression, Expression, Identifier, NullLiteral, NumericLiteral, Program, Statement}, lexer::{tokenize, BinaryOperator, Token}};
+use super::{ast::{Expression, Program, Statement}, lexer::{tokenize, BinaryOperator, Token}};
 
 pub struct Parser {
     tokens: VecDeque<Token>
@@ -28,11 +28,11 @@ impl Parser {
         while matches!(self.at(), Token::BinaryOperator(BinaryOperator::Additive(_))) {
             let operator = self.pop_front().to_string();
             let right = self.parse_multiplicitave_expression();
-            left = Expression::BinaryExpression(BinaryExpression {
+            left = Expression::BinaryExpression {
                 left: Box::new(left),
                 right: Box::new(right),
                 operator,
-            })
+            }
         }
         left
     }
@@ -41,20 +41,20 @@ impl Parser {
         while matches!(self.at(), Token::BinaryOperator(BinaryOperator::Multiplicitave(_))) {
             let operator = self.pop_front().to_string();
             let right = self.parse_primary_expression();
-            left = Expression::BinaryExpression(BinaryExpression {
+            left = Expression::BinaryExpression {
                 left: Box::new(left),
                 right: Box::new(right),
                 operator,
-            })
+            }
         }
         left
     }
     fn parse_primary_expression(&mut self) -> Expression {
         let token = self.pop_front();
         match token {
-            Token::Identifier(value) => Expression::Identifier(Identifier::create(value)),
-            Token::Number(value) => Expression::NumericLiteral(NumericLiteral::create(value.parse::<i32>().unwrap())),
-            Token::Null => Expression::NullLiteral(NullLiteral),
+            Token::Identifier(value) => Expression::Identifier(value),
+            Token::Number(value) => Expression::NumericLiteral(value.parse::<i32>().unwrap()),
+            Token::Null => Expression::NullLiteral,
             Token::OpenParen => {
                 let expr = self.parse_expression();
                 assert!(self.pop_front() == Token::CloseParen,
