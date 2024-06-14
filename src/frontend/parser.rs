@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use super::{ast::{BinaryExpression, Expression, Identifier, NullLiteral, NumericLiteral, Program, Statement}, lexer::{tokenize, BinaryOperator, Token, TokenType}};
+use super::{ast::{BinaryExpression, Expression, Identifier, NullLiteral, NumericLiteral, Program, Statement}, lexer::{tokenize, BinaryOperator, Token}};
 
 pub struct Parser {
     tokens: VecDeque<Token>
@@ -11,10 +11,10 @@ impl Parser {
         Self{ tokens: VecDeque::from(tokenize(source_code)) }
     }
     fn eof(&self) -> bool {
-        self.tokens[0].r#type == TokenType::EOF
+        self.tokens[0] == Token::EOF
     }
     fn at(&self) -> &Token {
-        &self.tokens[0]    
+        &self.tokens[0]
     }
     /// # Caution
     /// The Token Vec should always be not empty.
@@ -25,8 +25,8 @@ impl Parser {
     fn parse_additive_expression(&mut self) -> Expression {
         let mut left = self.parse_multiplicitave_expression();
 
-        while self.at().r#type == TokenType::BinaryOperator(BinaryOperator::Additive) {
-            let operator = self.pop_front().value;
+        while matches!(self.at(), Token::BinaryOperator(BinaryOperator::Additive(_))) {
+            let operator = self.pop_front().to_string();
             let right = self.parse_multiplicitave_expression();
             left = Expression::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
@@ -38,8 +38,8 @@ impl Parser {
     }
     fn parse_multiplicitave_expression(&mut self) -> Expression {
         let mut left = self.parse_primary_expression();
-        while self.at().r#type == TokenType::BinaryOperator(BinaryOperator::Multiplicitave) {
-            let operator = self.pop_front().value;
+        while matches!(self.at(), Token::BinaryOperator(BinaryOperator::Multiplicitave(_))) {
+            let operator = self.pop_front().to_string();
             let right = self.parse_primary_expression();
             left = Expression::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
@@ -51,19 +51,19 @@ impl Parser {
     }
     fn parse_primary_expression(&mut self) -> Expression {
         let token = self.pop_front();
-        match token.r#type {
-            TokenType::Identifier => Expression::Identifier(Identifier::create(token.value)),
-            TokenType::Number => Expression::NumericLiteral(NumericLiteral::create(token.value.parse::<i32>().unwrap())),
-            TokenType::Null => Expression::NullLiteral(NullLiteral),
-            TokenType::OpenParen => {
+        match token {
+            Token::Identifier(value) => Expression::Identifier(Identifier::create(value)),
+            Token::Number(value) => Expression::NumericLiteral(NumericLiteral::create(value.parse::<i32>().unwrap())),
+            Token::Null => Expression::NullLiteral(NullLiteral),
+            Token::OpenParen => {
                 let expr = self.parse_expression();
-                assert!(self.pop_front().r#type == TokenType::CloseParen,
+                assert!(self.pop_front() == Token::CloseParen,
                     "Expected a close parenthesis"
                 );
                 expr
             }
             _ => {
-                panic!("Unexpected token found during parsing: {}", token.value)
+                panic!("Unexpected token found during parsing: {}", token.to_string())
             }
         }
     }

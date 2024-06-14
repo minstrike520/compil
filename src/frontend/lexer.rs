@@ -1,9 +1,13 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, fmt::Display};
 
+/// # Note: following rust document "Defining an Enum"
+/// As the document says:
+/// > However, representing the same concept using just an enum is more concise: rather than an
+/// > enum inside a struct, we can put data directly into each enum variant.
 #[derive(Debug, PartialEq)]
-pub enum TokenType {
-    Number,
-    Identifier,
+pub enum Token {
+    Number(String),
+    Identifier(String),
     Equals,
     OpenParen,
     CloseParen,
@@ -15,7 +19,33 @@ pub enum TokenType {
 
 #[derive(Debug, PartialEq)]
 pub enum BinaryOperator {
-    Additive, Multiplicitave
+    Additive(String),
+    Multiplicitave(String)
+}
+
+impl Display for BinaryOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::Additive(string) => string,
+            Self::Multiplicitave(string) => string
+        })
+    }
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::Number(string) => string.clone(),
+            Self::Identifier(string) => string.clone(),
+            Self::Equals => "=".to_string(),
+            Self::OpenParen => "(".to_string(),
+            Self::CloseParen => ")".to_string(),
+            Self::BinaryOperator(binary_operator) => binary_operator.to_string(),
+            Self::Let => "let".to_string(),
+            Self::Null => "null".to_string(),
+            Self::EOF => "<END OF FILE>".to_string(),
+        })
+    }
 }
 
 /// # Note: To use `String` as `&str`
@@ -24,10 +54,10 @@ pub enum BinaryOperator {
 /// let string = String::new("awa");
 /// let static_str = string.as_str(); // type = &'static str
 /// ```
-pub fn find_reserved(token: &String) -> Option<TokenType> {
+pub fn find_reserved(token: &String) -> Option<Token> {
     match token.as_str() {
-        "let" => Some(TokenType::Let),
-        "null" => Some(TokenType::Null),
+        "let" => Some(Token::Let),
+        "null" => Some(Token::Null),
         _ => None,
     }
 }
@@ -40,16 +70,42 @@ pub fn is_skippable(token: &char) -> bool {
     ].contains(token)
 }
 
-#[derive(Debug)]
-pub struct Token {
-    pub value: String,
-    pub r#type: TokenType,
-}
+fn match_token(characters: &mut VecDeque<char>) -> Option<Token> {
+    Some(match characters[0] {
+        '(' => { characters.pop_front(); Token::OpenParen }, 
+        ')' => { characters.pop_front(); Token::CloseParen }, 
+        '+' | '-' => Token::BinaryOperator(BinaryOperator::Additive(characters.pop_front().unwrap().to_string())),
+        '*' | '/' | '%' => Token::BinaryOperator(BinaryOperator::Multiplicitave(characters.pop_front().unwrap().to_string())),
 
-impl Token {
-    pub fn new(value: String, r#type: TokenType) -> Self {
-        Self { value, r#type }
-    }
+        '=' => { characters.pop_front(); Token::Equals },
+        _ => {
+            if characters[0].is_digit(10) {
+                let mut number_token = String::new();
+                while characters.len() > 0 && characters[0].is_digit(10) {
+                    number_token += &characters.pop_front().unwrap().to_string();
+                }
+                Token::Number(number_token)
+            }
+            else if characters[0].is_alphabetic() {
+                let mut identifier = String::new();
+                while characters.len() > 0 && characters[0].is_alphabetic() {
+                    identifier += &characters.pop_front().unwrap().to_string();
+                }
+                match find_reserved(&identifier) {
+                    Some(t) => t,
+                    None => Token::Identifier(identifier) 
+                }
+            }
+            else if is_skippable(&characters[0]) {
+                let _ = characters.pop_front();
+                return None
+            }
+            else { panic!(
+                "Undefined character: {c}", 
+                c = characters.pop_front().unwrap().to_string());
+            }
+        }
+    })
 }
 
 pub fn tokenize(source_code: String) -> Vec<Token> {
@@ -57,43 +113,9 @@ pub fn tokenize(source_code: String) -> Vec<Token> {
     let mut src: VecDeque<char> = source_code.chars().collect();
     
     while !src.is_empty() {
-        let token: (String, TokenType) = match src[0] {
-            '(' => (src.pop_front().unwrap().to_string(), TokenType::OpenParen),
-            ')' => (src.pop_front().unwrap().to_string(), TokenType::CloseParen),
-            '+' | '-' => (src.pop_front().unwrap().to_string(), TokenType::BinaryOperator(BinaryOperator::Additive)),
-            '*' | '/' | '%' => (src.pop_front().unwrap().to_string(), TokenType::BinaryOperator(BinaryOperator::Multiplicitave)),
-
-            '=' => (src.pop_front().unwrap().to_string(), TokenType::Equals),
-            _ => {
-                if src[0].is_digit(10) {
-                    let mut number = String::new();
-                    while src.len() > 0 && src[0].is_digit(10) {
-                        number += &String::from(src.pop_front().unwrap());
-                    }
-                    (number, TokenType::Number)
-                }
-                else if src[0].is_alphabetic() {
-                    let mut identifier = String::new();
-                    while src.len() > 0 && src[0].is_alphabetic() {
-                        identifier += &String::from(src.pop_front().unwrap());
-                    }
-                    match find_reserved(&identifier) {
-                        Some(t) => (identifier, t),
-                        None => (identifier, TokenType::Identifier) 
-                    }
-                }
-                else if is_skippable(&src[0]) {
-                    let _ = src.pop_front();
-                    continue;
-                }
-                else { panic!(
-                    "Undefined character: {c}", 
-                    c = src.pop_front().unwrap().to_string());
-                }
-            }
-        };
-        tokens.push(Token::new(token.0, token.1));
+        let token = match match_token(&mut src) { Some(t) => t, None => continue };
+        tokens.push(token);
     }
-    tokens.push(Token::new("<END OF FILE>".to_string(), TokenType::EOF));
+    tokens.push(Token::EOF);
     tokens
 }
