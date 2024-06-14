@@ -70,7 +70,7 @@ pub fn is_skippable(character: &char) -> bool {
     ].contains(character)
 }
 
-fn match_token(characters: &mut VecDeque<char>) -> Option<Token> {
+fn compose_token(characters: &mut VecDeque<char>) -> Option<Token> {
     Some(match characters[0] {
         '(' => { characters.pop_front(); Token::OpenParen }, 
         ')' => { characters.pop_front(); Token::CloseParen }, 
@@ -113,7 +113,7 @@ pub fn tokenize(source_code: String) -> Vec<Token> {
     let mut src: VecDeque<char> = source_code.chars().collect();
     
     while !src.is_empty() {
-        let token = match match_token(&mut src) { Some(t) => t, None => continue };
+        let token = match compose_token(&mut src) { Some(t) => t, None => continue };
         tokens.push(token);
     }
     tokens.push(Token::EOF);
