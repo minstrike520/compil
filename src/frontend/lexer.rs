@@ -78,32 +78,32 @@ fn compose_token(characters: &mut VecDeque<char>) -> Option<Token> {
         '*' | '/' | '%' => Token::BinaryOperator(BinaryOperator::Multiplicitave(characters.pop_front().unwrap().to_string())),
 
         '=' => { characters.pop_front(); Token::Equals },
+        c if c.is_digit(10) => {
+            let mut number_token = String::new();
+            while characters.len() > 0 && characters[0].is_digit(10) {
+                number_token += &characters.pop_front().unwrap().to_string();
+            }
+            Token::Number(number_token)
+        },
+        c if c.is_alphabetic() => {
+            let mut identifier = String::new();
+            while characters.len() > 0 && characters[0].is_alphabetic() {
+                identifier += &characters.pop_front().unwrap().to_string();
+            }
+            match find_reserved(&identifier) {
+                Some(t) => t,
+                None => Token::Identifier(identifier) 
+            }
+        },
+        c if is_skippable(&c) => {
+            let _ = characters.pop_front();
+            return None
+        }
         _ => {
-            if characters[0].is_digit(10) {
-                let mut number_token = String::new();
-                while characters.len() > 0 && characters[0].is_digit(10) {
-                    number_token += &characters.pop_front().unwrap().to_string();
-                }
-                Token::Number(number_token)
-            }
-            else if characters[0].is_alphabetic() {
-                let mut identifier = String::new();
-                while characters.len() > 0 && characters[0].is_alphabetic() {
-                    identifier += &characters.pop_front().unwrap().to_string();
-                }
-                match find_reserved(&identifier) {
-                    Some(t) => t,
-                    None => Token::Identifier(identifier) 
-                }
-            }
-            else if is_skippable(&characters[0]) {
-                let _ = characters.pop_front();
-                return None
-            }
-            else { panic!(
+             panic!(
                 "Undefined character: {c}", 
-                c = characters.pop_front().unwrap().to_string());
-            }
+                c = characters.pop_front().unwrap().to_string()
+             );
         }
     })
 }
