@@ -62,12 +62,12 @@ pub fn find_reserved(token: &String) -> Option<Token> {
     }
 }
 
-pub fn is_skippable(token: &char) -> bool {
+pub fn is_skippable(character: &char) -> bool {
     vec![
         ' ',
         '\n',
         '\t',
-    ].contains(token)
+    ].contains(character)
 }
 
 fn match_token(characters: &mut VecDeque<char>) -> Option<Token> {
