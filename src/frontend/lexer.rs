@@ -70,35 +70,40 @@ pub fn is_skippable(character: &char) -> bool {
     ].contains(character)
 }
 
-fn compose_token(characters: &mut VecDeque<char>) -> Option<Token> {
-    Some(match characters[0] {
-        '(' => { characters.pop_front(); Token::OpenParen }, 
-        ')' => { characters.pop_front(); Token::CloseParen }, 
-        '+' | '-' => Token::BinaryOperator(BinaryOperator::Additive(characters.pop_front().unwrap().to_string())),
-        '*' | '/' | '%' => Token::BinaryOperator(BinaryOperator::Multiplicitave(characters.pop_front().unwrap().to_string())),
+fn is_additive(character: &char) -> bool { vec!['+', '-'].contains(character) }
 
-        '=' => { characters.pop_front(); Token::Equals },
-        c if c.is_digit(10) => {
-            let mut number_token = String::new();
-            while characters.len() > 0 && characters[0].is_digit(10) {
-                number_token += &characters.pop_front().unwrap().to_string();
-            }
-            Token::Number(number_token)
-        },
-        c if c.is_alphabetic() => {
-            let mut identifier = String::new();
-            while characters.len() > 0 && characters[0].is_alphabetic() {
-                identifier += &characters.pop_front().unwrap().to_string();
-            }
-            match find_reserved(&identifier) {
-                Some(t) => t,
-                None => Token::Identifier(identifier) 
-            }
-        },
-        c if is_skippable(&c) => {
-            let _ = characters.pop_front();
-            return None
-        }
+fn is_multiplicitave(character: &char) -> bool { vec!['*', '/', '%'].contains(character) }
+
+fn compose_identifier(head: char, characters: &mut VecDeque<char>) -> Token {
+    let mut identifier = String::from(head);
+    while !characters.is_empty() && characters[0].is_alphabetic() {
+        identifier += &characters.pop_front().unwrap().to_string();
+    }
+    match find_reserved(&identifier) {
+        Some(t) => t,
+        None => Token::Identifier(identifier) 
+    }
+    
+}
+
+fn compose_number_token(head: char, characters: &mut VecDeque<char>) -> Token {
+    let mut number_token = String::from(head);
+    while !characters.is_empty() && characters[0].is_digit(10) {
+        number_token += &characters.pop_front().unwrap().to_string();
+    }
+    Token::Number(number_token)
+}
+
+fn compose_token(characters: &mut VecDeque<char>) -> Option<Token> {
+    Some(match characters.pop_front().unwrap() {
+        '(' => Token::OpenParen ,
+        ')' => Token::CloseParen,
+        '=' => Token::Equals,
+        c if is_additive(&c) => Token::BinaryOperator(BinaryOperator::Additive(c.to_string())),
+        c if is_multiplicitave(&c) => Token::BinaryOperator(BinaryOperator::Multiplicitave(c.to_string())),
+        c if is_skippable(&c) => { return None },
+        c if c.is_digit(10) => compose_number_token(c, characters),
+        c if c.is_alphabetic() => compose_identifier(c, characters),
         _ => {
              panic!(
                 "Undefined character: {c}", 
@@ -113,8 +118,9 @@ pub fn tokenize(source_code: String) -> Vec<Token> {
     let mut src: VecDeque<char> = source_code.chars().collect();
     
     while !src.is_empty() {
-        let token = match compose_token(&mut src) { Some(t) => t, None => continue };
-        tokens.push(token);
+        if let Some(token) = compose_token(&mut src) {
+            tokens.push(token);
+        } else { continue; }
     }
     tokens.push(Token::EOF);
     tokens
