@@ -15,8 +15,12 @@ fn read_string() -> String {
 
 fn shell() {
     println!("Custom lang shell, v0.0.0");
-    let mut environment = Environment::create(None)
-        .declare_variable(&"test_variable".to_string(), RuntimeValue::NumberValue(3)).unwrap();
+    let mut environment = Environment::create(None);
+    environment
+        .declare_variable("test_variable", RuntimeValue::NumberValue(3)).unwrap()
+        .declare_variable("true", RuntimeValue::Bool(true)).unwrap()
+        .declare_variable("false", RuntimeValue::Bool(false)).unwrap()
+        .declare_variable("null", RuntimeValue::NullValue).unwrap();
     loop {
         print!("> ");
         let input = read_string();

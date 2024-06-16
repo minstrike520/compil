@@ -5,7 +5,7 @@ use crate::frontend::ast::{Expression, Program, Statement};
 use super::{environment::Environment, values::RuntimeValue};
 
 
-pub fn evaluate_program(program: Program, environment: &Environment) -> RuntimeValue {
+pub fn evaluate_program(program: Program, environment: &mut Environment) -> RuntimeValue {
     let mut last_evaluated: RuntimeValue = RuntimeValue::NullValue;
     for statement in program.body {
         last_evaluated = evaluate(statement, environment);
@@ -63,12 +63,30 @@ pub fn evaluate_expression(expression: Expression, environment: &Environment) ->
     }
 }
 
-pub fn evaluate(ast_node: Statement, environment: &Environment) -> RuntimeValue {
+pub fn evaluate_variable_declaration(identifier: String, value: Option<Expression>, environment: &mut Environment) -> RuntimeValue { 
+    let value = evaluate_expression(value.unwrap_or(Expression::Identifier("null".into())), environment);
+    match environment.declare_variable(identifier.as_str(), value) {
+        Ok(_) => *environment.lookup_variable(&identifier).unwrap(),
+        Err(err) => panic!("{:#?}", err)
+    }
+}
+
+pub fn evaluate_constant_declaration(identifier: String, value: Expression, environment: &mut Environment) -> RuntimeValue { 
+    let value = evaluate_expression(value, environment);
+    match environment.declare_constant(identifier.as_str(), value) {
+        Ok(_) => *environment.lookup_variable(&identifier).unwrap(),
+        Err(err) => panic!("{:#?}", err)
+    }
+}
+
+pub fn evaluate(ast_node: Statement, environment: &mut Environment) -> RuntimeValue {
     match ast_node {
         Statement::Expression(expression) => evaluate_expression(expression, environment),
         Statement::Program(program) => {
             evaluate_program(program, environment)
-        }
+        },
+        Statement::VarDeclaration { identifier, value } => evaluate_variable_declaration(identifier, value, environment),
+        Statement::ConstDeclaration { identifier, value } => todo!("(identifier: {identifier:#?}, value: {value:#?})"),
     }
 }
         
