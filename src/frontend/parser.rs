@@ -6,6 +6,13 @@ pub struct Parser {
     tokens: VecDeque<Token>
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum ParsingError {
+    NotAnExpression
+}
+
+pub type ParsingResult<T> = Result<T, ParsingError>;
+
 impl Parser {
     pub fn initialize(source_code: String) -> Self {
         Self{ tokens: VecDeque::from(tokenize(source_code)) }
@@ -56,22 +63,62 @@ impl Parser {
             Token::Number(value) => Expression::NumericLiteral(value.parse::<i32>().unwrap()),
             Token::OpenParen => {
                 let expr = self.parse_expression();
-                assert!(self.pop_front() == Token::CloseParen,
-                    "Expected a close parenthesis"
-                );
+                assert!(self.pop_front() == Token::CloseParen, "syntax error: Expected a close parenthesis");
                 expr
             }
-            _ => {
-                panic!("Unexpected token found during parsing: {}", token.to_string())
-            }
+            Token::CloseParen =>  panic!("syntax error: A close parenthesis is missing a corresponding open one."),
+            _ => panic!("Not an expression token: {token}")
+        }
+    }
+    fn parse_variable_declaration(&mut self) -> Statement {
+        assert!(self.pop_front() == Token::Let);
+        let identifier = match self.pop_front() {
+            Token::Identifier(i) => i,
+            _ => panic!("syntax error: constant statement should be followed by an identifier.")
+        };
+        match self.pop_front() {
+            Token::Semicolon => {
+                Statement::VarDeclaration { identifier, value: None }
+            },
+            Token::Equals => {
+                let value = Some(self.parse_expression());
+                if self.pop_front() != Token::Semicolon {
+                    panic!("syntax error: Constant declaration statement must end with semicolon.")
+                }
+                Statement::VarDeclaration { identifier, value }
+            },
+            t => panic!("syntax error: Not a valid constant assignment (expecting '=' or ';', but '{}' found)", t.to_string())
+        }
+    }
+    fn parse_const_declaration(&mut self) -> Statement {
+        assert!(self.pop_front() == Token::Const);
+        let identifier = match self.pop_front() {
+            Token::Identifier(i) => i,
+            _ => panic!("syntax error: let statement should be followed by an identifier.")
+        };
+        match self.pop_front() {
+            Token::Semicolon => {
+                panic!("constant declaration should contain value") 
+            },
+            Token::Equals => {
+                let value = Some(self.parse_expression());
+                if self.pop_front() != Token::Semicolon {
+                    panic!("syntax error: Variable declaration statement must end with semicolon.")
+                }
+                Statement::VarDeclaration { identifier, value }
+            },
+            t => panic!("syntax error: Not a valid let assignment (expecting '=' or ';', but '{}' found)", t.to_string())
         }
     }
     fn parse_expression(&mut self) -> Expression {
         self.parse_additive_expression()
     }
     fn parse_statement(&mut self) -> Statement {
-        //TODO
-        Statement::Expression(self.parse_expression())
+        match *self.at() {
+            Token::Let => self.parse_variable_declaration(),
+            Token::Const => self.parse_const_declaration(),
+            _ => Statement::Expression(self.parse_expression())
+        }
     }
     pub fn produce_ast(&mut self) -> Program {
         let mut program = Program::new();

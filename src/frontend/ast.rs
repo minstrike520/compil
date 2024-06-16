@@ -1,6 +1,8 @@
 #[derive(Debug)]
 pub enum Statement {
     Program(Program),
+    VarDeclaration{ identifier: String, value: Option<Expression> },
+    ConstDeclaration{ identifier: String, value: Expression },
     Expression(Expression)
 }
 

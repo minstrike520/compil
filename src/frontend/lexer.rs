@@ -13,6 +13,8 @@ pub enum Token {
     CloseParen,
     BinaryOperator(BinaryOperator),
     Let,
+    Const,
+    Semicolon,
     EOF,
 }
 
@@ -41,6 +43,8 @@ impl Display for Token {
             Self::CloseParen => ")".to_string(),
             Self::BinaryOperator(binary_operator) => binary_operator.to_string(),
             Self::Let => "let".to_string(),
+            Self::Const => "const".to_string(),
+            Self::Semicolon => ";".to_string(),
             Self::EOF => "<END OF FILE>".to_string(),
         })
     }
@@ -55,6 +59,7 @@ impl Display for Token {
 pub fn find_reserved(token: &String) -> Option<Token> {
     match token.as_str() {
         "let" => Some(Token::Let),
+        "const" => Some(Token::Const),
         _ => None,
     }
 }
@@ -99,9 +104,10 @@ fn compose_number_token(head: char, characters: &mut VecDeque<char>) -> Token {
 
 fn compose_token(characters: &mut VecDeque<char>) -> Option<Token> {
     Some(match characters.pop_front().unwrap() {
-        '(' => Token::OpenParen ,
+        '(' => Token::OpenParen,
         ')' => Token::CloseParen,
         '=' => Token::Equals,
+        ';' => Token::Semicolon,
         c if is_additive(&c) => Token::BinaryOperator(BinaryOperator::Additive(c.to_string())),
         c if is_multiplicitave(&c) => Token::BinaryOperator(BinaryOperator::Multiplicitave(c.to_string())),
         c if is_skippable(&c) => { return None },
