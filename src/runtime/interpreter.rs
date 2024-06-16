@@ -57,7 +57,6 @@ pub fn evaluate_identifier(identifier: String, environment: &Environment) -> Run
 
 pub fn evaluate_expression(expression: Expression, environment: &Environment) -> RuntimeValue {
     match expression {
-        Expression::NullLiteral => RuntimeValue::NullValue,
         Expression::NumericLiteral(number) => RuntimeValue::NumberValue(number),
         Expression::Identifier(identifier) => evaluate_identifier(identifier, environment),
         Expression::BinaryExpression { left, right, operator } => evaluate_binary_operation(left, right, operator, environment),

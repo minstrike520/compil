@@ -8,7 +8,6 @@ pub enum Statement {
 pub enum Expression {
     NumericLiteral(i32),
     Identifier(String),
-    NullLiteral,
     BinaryExpression {
         left: Box<Expression>,
         right: Box<Expression>,
