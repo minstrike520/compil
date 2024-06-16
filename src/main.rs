@@ -1,5 +1,7 @@
 use std::{env, fs};
 
+use crate::runtime::{environment::Environment, values::RuntimeValue};
+
 mod frontend;
 mod runtime;
 
@@ -13,6 +15,8 @@ fn read_string() -> String {
 
 fn shell() {
     println!("Custom lang shell, v0.0.0");
+    let mut environment = Environment::create(None)
+        .declare_variable(&"test_variable".to_string(), RuntimeValue::NumberValue(3)).unwrap();
     loop {
         print!("> ");
         let input = read_string();
@@ -21,7 +25,7 @@ fn shell() {
             break;
         }
         let program = frontend::parser::Parser::initialize(input).produce_ast();
-        let result = runtime::interpreter::evaluate_program(program);
+        let result = runtime::interpreter::evaluate_program(program, &mut environment);
         println!("{:#?}", result);
     }
 }
