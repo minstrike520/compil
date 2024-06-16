@@ -70,13 +70,19 @@ pub fn is_skippable(character: &char) -> bool {
     ].contains(character)
 }
 
+fn is_legal_identifier_character(character: &char) -> bool {
+    character.is_alphabetic() || vec![
+        '_'
+    ].contains(character)
+}
+
 fn is_additive(character: &char) -> bool { vec!['+', '-'].contains(character) }
 
 fn is_multiplicitave(character: &char) -> bool { vec!['*', '/', '%'].contains(character) }
 
 fn compose_identifier(head: char, characters: &mut VecDeque<char>) -> Token {
     let mut identifier = String::from(head);
-    while !characters.is_empty() && characters[0].is_alphabetic() {
+    while !characters.is_empty() && is_legal_identifier_character(&characters[0]) {
         identifier += &characters.pop_front().unwrap().to_string();
     }
     match find_reserved(&identifier) {
@@ -103,7 +109,7 @@ fn compose_token(characters: &mut VecDeque<char>) -> Option<Token> {
         c if is_multiplicitave(&c) => Token::BinaryOperator(BinaryOperator::Multiplicitave(c.to_string())),
         c if is_skippable(&c) => { return None },
         c if c.is_digit(10) => compose_number_token(c, characters),
-        c if c.is_alphabetic() => compose_identifier(c, characters),
+        c if is_legal_identifier_character(&c) => compose_identifier(c, characters),
         _ => {
              panic!(
                 "Undefined character: {c}", 
