@@ -54,7 +54,6 @@ impl Parser {
         match token {
             Token::Identifier(value) => Expression::Identifier(value),
             Token::Number(value) => Expression::NumericLiteral(value.parse::<i32>().unwrap()),
-            Token::Null => Expression::NullLiteral,
             Token::OpenParen => {
                 let expr = self.parse_expression();
                 assert!(self.pop_front() == Token::CloseParen,

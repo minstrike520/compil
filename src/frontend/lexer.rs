@@ -13,7 +13,6 @@ pub enum Token {
     CloseParen,
     BinaryOperator(BinaryOperator),
     Let,
-    Null,
     EOF,
 }
 
@@ -42,7 +41,6 @@ impl Display for Token {
             Self::CloseParen => ")".to_string(),
             Self::BinaryOperator(binary_operator) => binary_operator.to_string(),
             Self::Let => "let".to_string(),
-            Self::Null => "null".to_string(),
             Self::EOF => "<END OF FILE>".to_string(),
         })
     }
@@ -57,7 +55,6 @@ impl Display for Token {
 pub fn find_reserved(token: &String) -> Option<Token> {
     match token.as_str() {
         "let" => Some(Token::Let),
-        "null" => Some(Token::Null),
         _ => None,
     }
 }
