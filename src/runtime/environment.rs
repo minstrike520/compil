@@ -23,14 +23,14 @@ impl Environment {
     pub fn create(parent: Option<Box<Self>>) -> Self {
         Self{ parent, variables: HashMap::new() }
     }
-    pub fn declare_variable(&mut self, variable_name: &String, value: RuntimeValue) -> EnvResult<&mut Self> {
+    pub fn declare_variable(mut self, variable_name: &String, value: RuntimeValue) -> EnvResult<Self> {
         if self.variables.contains_key(variable_name) {
             return Err(EnvError::VarRedefining(variable_name.to_string()));
         }
         self.variables.insert(variable_name.clone(), value);
         Ok(self)
     }
-    pub fn assign_variable(&mut self, variable_name: &String, value: RuntimeValue) -> EnvResult<&mut Self> {
+    pub fn assign_variable(mut self, variable_name: &String, value: RuntimeValue) -> EnvResult<Self> {
         let environment = self.resolve_mut(variable_name)?;
         environment.variables.insert(variable_name.to_string(), value);
         Ok(self)
