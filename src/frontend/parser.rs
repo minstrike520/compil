@@ -6,13 +6,6 @@ pub struct Parser {
     tokens: VecDeque<Token>
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum ParsingError {
-    NotAnExpression
-}
-
-pub type ParsingResult<T> = Result<T, ParsingError>;
-
 impl Parser {
     pub fn initialize(source_code: String) -> Self {
         Self{ tokens: VecDeque::from(tokenize(source_code)) }
@@ -101,14 +94,21 @@ impl Parser {
                 panic!("constant declaration should contain value") 
             },
             Token::Equals => {
-                let value = Some(self.parse_expression());
+                let value = self.parse_expression();
                 if self.pop_front() != Token::Semicolon {
                     panic!("syntax error: Variable declaration statement must end with semicolon.")
                 }
-                Statement::VarDeclaration { identifier, value }
+                Statement::ConstDeclaration { identifier, value }
             },
             t => panic!("syntax error: Not a valid let assignment (expecting '=' or ';', but '{}' found)", t.to_string())
         }
+    }
+    fn parse_variable_assignment(&mut self) -> Statement {
+        let left = self.parse_expression();
+        if *self.at() != Token::Equals { return Statement::Expression(left); }
+        self.pop_front();
+        let value = self.parse_expression();
+        Statement::VarAssignment { assigne: left, value }
     }
     fn parse_expression(&mut self) -> Expression {
         self.parse_additive_expression()
@@ -117,6 +117,7 @@ impl Parser {
         match *self.at() {
             Token::Let => self.parse_variable_declaration(),
             Token::Const => self.parse_const_declaration(),
+            Token::Identifier(_) => self.parse_variable_assignment(),
             _ => Statement::Expression(self.parse_expression())
         }
     }

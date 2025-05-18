@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use crate::frontend::ast::{Expression, Program, Statement};
 
 use super::{environment::Environment, values::RuntimeValue};
@@ -79,6 +77,17 @@ pub fn evaluate_constant_declaration(identifier: String, value: Expression, envi
     }
 }
 
+pub fn evaluate_assignment(assigne: Expression, value: Expression, environment: &mut Environment) -> RuntimeValue {
+    if let Expression::Identifier(variable_name) = assigne {
+        let value = evaluate_expression(value, environment);
+        if let Err(err) = environment.assign_variable(&variable_name, value) { panic!("{:#?}", err) }
+        *environment.lookup_variable(&variable_name).unwrap()
+    }
+    else {
+        panic!("syntax error: assignment invalid identifier")
+    }
+}
+
 pub fn evaluate(ast_node: Statement, environment: &mut Environment) -> RuntimeValue {
     match ast_node {
         Statement::Expression(expression) => evaluate_expression(expression, environment),
@@ -86,7 +95,7 @@ pub fn evaluate(ast_node: Statement, environment: &mut Environment) -> RuntimeVa
             evaluate_program(program, environment)
         },
         Statement::VarDeclaration { identifier, value } => evaluate_variable_declaration(identifier, value, environment),
-        Statement::ConstDeclaration { identifier, value } => todo!("(identifier: {identifier:#?}, value: {value:#?})"),
+        Statement::ConstDeclaration { identifier, value } => evaluate_constant_declaration(identifier, value, environment),
+        Statement::VarAssignment { assigne, value } => todo!("evaluating variable assignment")
     }
 }
-        

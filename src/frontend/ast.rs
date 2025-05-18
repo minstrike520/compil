@@ -2,6 +2,7 @@
 pub enum Statement {
     Program(Program),
     VarDeclaration{ identifier: String, value: Option<Expression> },
+    VarAssignment{ assigne: Expression, value: Expression },
     ConstDeclaration{ identifier: String, value: Expression },
     Expression(Expression)
 }

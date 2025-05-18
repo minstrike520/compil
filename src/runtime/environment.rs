@@ -25,20 +25,23 @@ impl Environment {
         Self{ parent, variables: HashMap::new(), constants: HashMap::new() }
     }
     pub fn declare_constant(&mut self, constant_name: &str, value: RuntimeValue) -> EnvResult<&mut Self> {
-        if self.constants.contains_key(constant_name) {
+        if self.constants.contains_key(constant_name) || 
+           self.variables.contains_key(constant_name) {
             return Err(EnvError::VarRedefining(constant_name.to_string()));
         }
         self.constants.insert(constant_name.to_string(), value);
         Ok(self)
     }
     pub fn declare_variable(&mut self, variable_name: &str, value: RuntimeValue) -> EnvResult<&mut Self> {
-        if self.variables.contains_key(variable_name) {
+        if self.variables.contains_key(variable_name) ||
+           self.constants.contains_key(variable_name) {
             return Err(EnvError::VarRedefining(variable_name.to_string()));
         }
         self.variables.insert(variable_name.to_string(), value);
         Ok(self)
     }
     pub fn assign_variable(&mut self, variable_name: &String, value: RuntimeValue) -> EnvResult<&mut Self> {
+        
         let environment = self.resolve_mut(variable_name)?;
         environment.variables.insert(variable_name.to_string(), value);
         Ok(self)
@@ -55,6 +58,8 @@ impl Environment {
         }
         Ok(self.parent.as_ref().unwrap().resolve(variable_name)?)
     }
+    /// TODO
+    /// Resolving mechanics don't get constant var.
     pub fn resolve_mut(&mut self, variable_name: &String) -> EnvResult<&mut Self> {
         if self.variables.contains_key(variable_name) { return Ok(self) }
         if let None = self.parent {
