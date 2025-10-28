@@ -6,7 +6,7 @@ pub enum Statement {
         value: Option<Expression>,
     },
     VarAssignment {
-        assigne: Expression,
+        identifier: String,
         value: Expression,
     },
     ConstDeclaration {

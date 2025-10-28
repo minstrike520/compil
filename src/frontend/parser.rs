@@ -5,6 +5,7 @@ use super::{
     lexer::{tokenize, BinaryOperator, Token},
 };
 
+#[derive(Debug)]
 pub struct Parser {
     tokens: VecDeque<Token>,
 }
@@ -79,7 +80,7 @@ impl Parser {
             _ => panic!("Not an expression token: {token}"),
         }
     }
-    fn parse_variable_declaration(&mut self) -> Statement {
+    fn parse_let(&mut self) -> Statement {
         assert!(self.pop_front() == Token::Let);
         let identifier = match self.pop_front() {
             Token::Identifier(i) => i,
@@ -99,7 +100,7 @@ impl Parser {
             t => panic!("syntax error: Not a valid constant assignment (expecting '=' or ';', but '{}' found)", t.to_string())
         }
     }
-    fn parse_const_declaration(&mut self) -> Statement {
+    fn parse_const(&mut self) -> Statement {
         assert!(self.pop_front() == Token::Const);
         let identifier = match self.pop_front() {
             Token::Identifier(i) => i,
@@ -122,26 +123,37 @@ impl Parser {
             ),
         }
     }
-    fn parse_variable_assignment(&mut self) -> Statement {
+    fn parse_identifier(&mut self) -> Statement {
         let left = self.parse_expression();
         if *self.at() != Token::Equals {
+            self.pop_front();
             return Statement::Expression(left);
         }
         self.pop_front();
         let value = self.parse_expression();
-        Statement::VarAssignment {
-            assigne: left,
-            value,
+        if *self.at() == Token::Semicolon {
+            self.pop_front();
         }
+        assert!(matches!(left, Expression::Identifier(_)));
+        if let Expression::Identifier(identifier) = left {
+            Statement::VarAssignment {
+                identifier,
+                value
+            }
+        }
+        else {
+            panic!()
+        }
+        
     }
     fn parse_expression(&mut self) -> Expression {
         self.parse_additive_expression()
     }
     fn parse_statement(&mut self) -> Statement {
         match *self.at() {
-            Token::Let => self.parse_variable_declaration(),
-            Token::Const => self.parse_const_declaration(),
-            Token::Identifier(_) => self.parse_variable_assignment(),
+            Token::Let => self.parse_let(),
+            Token::Const => self.parse_const(),
+            Token::Identifier(_) => self.parse_identifier(),
             _ => Statement::Expression(self.parse_expression()),
         }
     }
@@ -149,7 +161,8 @@ impl Parser {
         let mut program = Program::new();
 
         while !self.eof() {
-            program.body.push(self.parse_statement());
+            let s = self.parse_statement();
+            program.body.push(s);
         }
         program
     }

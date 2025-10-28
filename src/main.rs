@@ -4,6 +4,8 @@ use crate::runtime::{environment::Environment, values::RuntimeValue};
 
 mod frontend;
 mod runtime;
+#[cfg(test)]
+mod tests;
 
 fn read_string() -> String {
     let mut input = String::new();
@@ -35,7 +37,7 @@ fn shell() {
         }
         let program = frontend::parser::Parser::initialize(input).produce_ast();
         let result = environment.evaluate_program(program);
-        println!("{:#?}", result);
+        // println!("{:#?}", result);
     }
 }
 
