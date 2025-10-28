@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env, fs, io::Write};
 
 use crate::runtime::{environment::Environment, values::RuntimeValue};
 
@@ -17,12 +17,17 @@ fn shell() {
     println!("Custom lang shell, v0.0.0");
     let mut environment = Environment::create(None);
     environment
-        .declare_variable("test_variable", RuntimeValue::NumberValue(3)).unwrap()
-        .declare_variable("true", RuntimeValue::Bool(true)).unwrap()
-        .declare_variable("false", RuntimeValue::Bool(false)).unwrap()
-        .declare_variable("null", RuntimeValue::NullValue).unwrap();
+        .declare_variable("test_variable", RuntimeValue::NumberValue(3))
+        .unwrap()
+        .declare_variable("true", RuntimeValue::Bool(true))
+        .unwrap()
+        .declare_variable("false", RuntimeValue::Bool(false))
+        .unwrap()
+        .declare_variable("null", RuntimeValue::NullValue)
+        .unwrap();
     loop {
         print!("> ");
+        std::io::stdout().flush().expect("io flush err");
         let input = read_string();
         if input == "exit\n".to_string() {
             println!("Shell exits.");
@@ -36,9 +41,12 @@ fn shell() {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args[1].eq("shell") {
+    if let Some(arg1) = args.get(1) {
+        if arg1 != "shell" {
+            return;
+        }
         shell();
-        return
+        return;
     }
 
     let file_path = &args[1];
@@ -47,7 +55,7 @@ fn main() {
     let content = fs::read_to_string(file_path).expect("Should have been able to read the file");
 
     println!("<FILE CONTENT> \n{content}");
-   
+
     let parse_result = frontend::parser::Parser::initialize(content).produce_ast();
     println!("parse result: {:?}", parse_result);
 }

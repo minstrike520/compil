@@ -21,32 +21,40 @@ pub enum Token {
 #[derive(Debug, PartialEq)]
 pub enum BinaryOperator {
     Additive(String),
-    Multiplicitave(String)
+    Multiplicitave(String),
 }
 
 impl Display for BinaryOperator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            Self::Additive(string) => string,
-            Self::Multiplicitave(string) => string
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Additive(string) => string,
+                Self::Multiplicitave(string) => string,
+            }
+        )
     }
 }
 
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            Self::Number(string) => string.clone(),
-            Self::Identifier(string) => string.clone(),
-            Self::Equals => "=".to_string(),
-            Self::OpenParen => "(".to_string(),
-            Self::CloseParen => ")".to_string(),
-            Self::BinaryOperator(binary_operator) => binary_operator.to_string(),
-            Self::Let => "let".to_string(),
-            Self::Const => "const".to_string(),
-            Self::Semicolon => ";".to_string(),
-            Self::EOF => "<END OF FILE>".to_string(),
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Number(string) => string.clone(),
+                Self::Identifier(string) => string.clone(),
+                Self::Equals => "=".to_string(),
+                Self::OpenParen => "(".to_string(),
+                Self::CloseParen => ")".to_string(),
+                Self::BinaryOperator(binary_operator) => binary_operator.to_string(),
+                Self::Let => "let".to_string(),
+                Self::Const => "const".to_string(),
+                Self::Semicolon => ";".to_string(),
+                Self::EOF => "<END OF FILE>".to_string(),
+            }
+        )
     }
 }
 
@@ -65,22 +73,20 @@ pub fn find_reserved(token: &String) -> Option<Token> {
 }
 
 pub fn is_skippable(character: &char) -> bool {
-    vec![
-        ' ',
-        '\n',
-        '\t',
-    ].contains(character)
+    vec![' ', '\n', '\t'].contains(character)
 }
 
 fn is_legal_identifier_character(character: &char) -> bool {
-    character.is_alphabetic() || vec![
-        '_'
-    ].contains(character)
+    character.is_alphabetic() || vec!['_'].contains(character)
 }
 
-fn is_additive(character: &char) -> bool { vec!['+', '-'].contains(character) }
+fn is_additive(character: &char) -> bool {
+    vec!['+', '-'].contains(character)
+}
 
-fn is_multiplicitave(character: &char) -> bool { vec!['*', '/', '%'].contains(character) }
+fn is_multiplicitave(character: &char) -> bool {
+    vec!['*', '/', '%'].contains(character)
+}
 
 fn compose_identifier(head: char, characters: &mut VecDeque<char>) -> Token {
     let mut identifier = String::from(head);
@@ -89,9 +95,8 @@ fn compose_identifier(head: char, characters: &mut VecDeque<char>) -> Token {
     }
     match find_reserved(&identifier) {
         Some(t) => t,
-        None => Token::Identifier(identifier) 
+        None => Token::Identifier(identifier),
     }
-    
 }
 
 fn compose_number_token(head: char, characters: &mut VecDeque<char>) -> Token {
@@ -109,15 +114,17 @@ fn compose_token(characters: &mut VecDeque<char>) -> Option<Token> {
         '=' => Token::Equals,
         ';' => Token::Semicolon,
         c if is_additive(&c) => Token::BinaryOperator(BinaryOperator::Additive(c.to_string())),
-        c if is_multiplicitave(&c) => Token::BinaryOperator(BinaryOperator::Multiplicitave(c.to_string())),
-        c if is_skippable(&c) => { return None },
+        c if is_multiplicitave(&c) => {
+            Token::BinaryOperator(BinaryOperator::Multiplicitave(c.to_string()))
+        }
+        c if is_skippable(&c) => return None,
         c if c.is_digit(10) => compose_number_token(c, characters),
         c if is_legal_identifier_character(&c) => compose_identifier(c, characters),
         _ => {
-             panic!(
-                "Undefined character: {c}", 
+            panic!(
+                "Undefined character: {c}",
                 c = characters.pop_front().unwrap().to_string()
-             );
+            );
         }
     })
 }
@@ -125,11 +132,13 @@ fn compose_token(characters: &mut VecDeque<char>) -> Option<Token> {
 pub fn tokenize(source_code: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut src: VecDeque<char> = source_code.chars().collect();
-    
+
     while !src.is_empty() {
         if let Some(token) = compose_token(&mut src) {
             tokens.push(token);
-        } else { continue; }
+        } else {
+            continue;
+        }
     }
     tokens.push(Token::EOF);
     tokens

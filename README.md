@@ -6,6 +6,18 @@ A custom programming language interpreter written in Rust.
 
 This project is a simple interpreter for a custom programming language. It features a lexer, parser, and an interpreter that evaluates the abstract syntax tree (AST).
 
+## Structure
+
+Frontend:
+```
+src: String --[lexing]--> token --[parsing]--> program<statement<expression>>
+```
+Runtime:
+```
+runtime.evaluate(program)
+```
+
+
 ## Getting Started
 
 ### Prerequisites
