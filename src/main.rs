@@ -34,7 +34,7 @@ fn shell() {
             break;
         }
         let program = frontend::parser::Parser::initialize(input).produce_ast();
-        let result = runtime::interpreter::evaluate_program(program, &mut environment);
+        let result = environment.evaluate_program(program);
         println!("{:#?}", result);
     }
 }

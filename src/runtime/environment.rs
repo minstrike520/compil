@@ -1,3 +1,4 @@
+use crate::frontend::ast::{Expression, Program, Statement};
 use std::collections::HashMap;
 
 use super::values::RuntimeValue;
@@ -87,5 +88,99 @@ impl Environment {
             return Err(EnvError::VarNotFound(variable_name.to_string()));
         }
         Ok(self.parent.as_mut().unwrap().resolve_mut(variable_name)?)
+    }
+    pub fn evaluate(&mut self, ast_node: Statement) -> RuntimeValue {
+        match ast_node {
+            Statement::Expression(expression) => self.evaluate_expression(expression),
+            Statement::Program(program) => self.evaluate_program(program),
+            Statement::VarDeclaration { identifier, value } => {
+                self.evaluate_variable_declaration(identifier, value)
+            }
+            Statement::ConstDeclaration { identifier, value } => {
+                self.evaluate_constant_declaration(identifier, value)
+            }
+            Statement::VarAssignment { assigne, value } => todo!("evaluating variable assignment"),
+        }
+    }
+    pub fn evaluate_program(&mut self, program: Program) -> RuntimeValue {
+        let mut last_evaluated: RuntimeValue = RuntimeValue::NullValue;
+        for statement in program.body {
+            last_evaluated = self.evaluate(statement);
+        }
+        last_evaluated
+    }
+    pub fn evaluate_expression(&mut self, expression: Expression) -> RuntimeValue {
+        match expression {
+            Expression::NumericLiteral(number) => RuntimeValue::NumberValue(number),
+            Expression::Identifier(identifier) => self.evaluate_identifier(identifier),
+            Expression::BinaryExpression {
+                left,
+                right,
+                operator,
+            } => self.evaluate_binary_operation(left, right, operator),
+        }
+    }
+    pub fn evaluate_identifier(&mut self, identifier: String) -> RuntimeValue {
+        let variable = match self.lookup_variable(&identifier) {
+            Ok(variable) => *variable,
+            Err(_) => todo!("VarNotFound handling is not yet implemented"),
+        };
+        println!("Warning: the implemention of 'evaluate_identifier' is not complete. Unexpected behaviors may occur.");
+        variable
+    }
+
+    fn evaluate_binary_operation(
+        &mut self,
+        left: Box<Expression>,
+        right: Box<Expression>,
+        operator: String,
+    ) -> RuntimeValue {
+        let left = self.evaluate_expression(*left);
+        let right = self.evaluate_expression(*right);
+        match (left, right) {
+            (
+                RuntimeValue::NumberValue(left_number_value),
+                RuntimeValue::NumberValue(right_number_value),
+            ) => RuntimeValue::NumberValue(Environment::evaluate_numeric_binary_operation(
+                left_number_value,
+                right_number_value,
+                operator,
+            )),
+            (_, _) => todo!("Not implemented: evaluating other types of binary operations"),
+        }
+    }
+    fn evaluate_numeric_binary_operation(left: i32, right: i32, operator: String) -> i32 {
+        let result = match operator.as_str() {
+            "+" => left + right,
+            "-" => left - right,
+            "*" => left * right,
+            "/" => left / right,
+            "%" => left % right,
+            _ => panic!("Unexpected operator: {}", operator),
+        };
+        result
+    }
+    pub fn evaluate_variable_declaration(
+        &mut self,
+        identifier: String,
+        value: Option<Expression>,
+    ) -> RuntimeValue {
+        let value =
+            self.evaluate_expression(value.unwrap_or(Expression::Identifier("null".into())));
+        match self.declare_variable(identifier.as_str(), value) {
+            Ok(_) => *self.lookup_variable(&identifier).unwrap(),
+            Err(err) => panic!("{:#?}", err),
+        }
+    }
+    pub fn evaluate_constant_declaration(
+        &mut self,
+        identifier: String,
+        value: Expression,
+    ) -> RuntimeValue {
+        let value = self.evaluate_expression(value);
+        match self.declare_constant(identifier.as_str(), value) {
+            Ok(_) => *self.lookup_variable(&identifier).unwrap(),
+            Err(err) => panic!("{:#?}", err),
+        }
     }
 }
